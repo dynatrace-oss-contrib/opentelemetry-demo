@@ -11,6 +11,8 @@
 .DS_Store
 \#*\#
 
+docker-compose.override.yml
+
 # Eclipse
 .classpath
 .project
@@ -38,9 +40,11 @@ composer.lock
 src/frontend/cypress/videos
 src/frontend/cypress/screenshots
 src/shippingservice/target/
+test/tracetesting/tracetesting-vars.yaml
 
 # Ignore copied/generated protobuf files
-/src/cartservice/src/protos/
+/src/accounting/src/protos/
+/src/cart/src/protos/
 /src/featureflagservice/proto/
 /src/featureflagservice/src/ffs_demo_pb.erl
 /src/featureflagservice/src/ffs_service_*.erl
@@ -49,5 +53,5 @@ src/shippingservice/target/
 /src/frontend/pb/
 /src/frontend/protos/
 /src/paymentservice/demo.proto
-/src/recommendationservice/demo_pb2*.py
 /src/shippingservice/proto/
+/src/currencyservice/proto

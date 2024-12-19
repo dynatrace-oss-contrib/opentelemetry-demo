@@ -25,13 +25,10 @@ docker compose build productcatalogservice
 
 ## Regenerate protos
 
-> **Note**
-> [`protoc`](https://grpc.io/docs/protoc-installation/) is required.
-
-To regenerate gRPC code run:
+To build the protos, run from the root directory:
 
 ```sh
-go generate
+make docker-generate-protobuf
 ```
 
 ## Bump dependencies

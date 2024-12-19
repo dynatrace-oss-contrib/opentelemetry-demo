@@ -8,17 +8,17 @@ const opentelemetry = require('@opentelemetry/api')
 const charge = require('./charge')
 const logger = require('./logger')
 
-function chargeServiceHandler(call, callback) {
+async function chargeServiceHandler(call, callback) {
   const span = opentelemetry.trace.getActiveSpan();
 
   try {
     const amount = call.request.amount
     span.setAttributes({
-      'app.payment.amount': parseFloat(`${amount.units}.${amount.nanos}`)
+      'app.payment.amount': parseFloat(`${amount.units}.${amount.nanos}`).toFixed(2)
     })
     logger.info({ request: call.request }, "Charge request received.")
 
-    const response = charge.charge(call.request)
+    const response = await charge.charge(call.request)
     callback(null, response)
 
   } catch (err) {
@@ -51,9 +51,7 @@ server.bindAsync(`0.0.0.0:${process.env['PAYMENT_SERVICE_PORT']}`, grpc.ServerCr
   }
 
   logger.info(`PaymentService gRPC server started on port ${port}`)
-  server.start()
-}
-)
+})
 
 process.once('SIGINT', closeGracefully)
 process.once('SIGTERM', closeGracefully)

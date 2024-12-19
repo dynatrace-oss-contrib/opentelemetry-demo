@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-FROM node:18-alpine AS deps
+FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
@@ -10,7 +10,7 @@ WORKDIR /app
 COPY ./src/frontend/package*.json ./
 RUN npm ci
 
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat protobuf-dev protoc
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -20,7 +20,7 @@ COPY ./src/frontend .
 RUN npm run grpc:generate
 RUN npm run build
 
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 RUN apk add --no-cache protobuf-dev protoc
 
@@ -40,7 +40,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-ENV PORT 8080
+ENV PORT=8080
 EXPOSE ${PORT}
 
-ENTRYPOINT npm start
+ENTRYPOINT ["npm", "start"]
+

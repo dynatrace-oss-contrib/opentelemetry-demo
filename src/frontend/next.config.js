@@ -13,8 +13,8 @@ const myEnv = dotEnv.config({
 dotenvExpand.expand(myEnv);
 
 const {
-  AD_SERVICE_ADDR = '',
-  CART_SERVICE_ADDR = '',
+  AD_ADDR = '',
+  CART_ADDR = '',
   CHECKOUT_SERVICE_ADDR = '',
   CURRENCY_SERVICE_ADDR = '',
   PRODUCT_CATALOG_SERVICE_ADDR = '',
@@ -45,8 +45,8 @@ const nextConfig = {
     return config;
   },
   env: {
-    AD_SERVICE_ADDR,
-    CART_SERVICE_ADDR,
+    AD_ADDR,
+    CART_ADDR,
     CHECKOUT_SERVICE_ADDR,
     CURRENCY_SERVICE_ADDR,
     PRODUCT_CATALOG_SERVICE_ADDR,
@@ -57,6 +57,10 @@ const nextConfig = {
     NEXT_PUBLIC_OTEL_SERVICE_NAME: OTEL_SERVICE_NAME,
     NEXT_PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
   },
+  images: {
+    loader: "custom",
+    loaderFile: "./utils/imageLoader.js"
+  }
 };
 
 module.exports = nextConfig;

@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import Layout from '../components/Layout';
 import ProductList from '../components/ProductList';
 import * as S from '../styles/Home.styled';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import ApiGateway from '../gateways/Api.gateway';
 import Banner from '../components/Banner';
 import { CypressFields } from '../utils/Cypress';
@@ -14,9 +14,10 @@ import { useCurrency } from '../providers/Currency.provider';
 
 const Home: NextPage = () => {
   const { selectedCurrency } = useCurrency();
-  const { data: productList = [] } = useQuery(['products', selectedCurrency], () =>
-    ApiGateway.listProducts(selectedCurrency)
-  );
+  const { data: productList = [] } = useQuery({
+    queryKey: ['products', selectedCurrency],
+    queryFn: () => ApiGateway.listProducts(selectedCurrency),
+  });
 
   return (
     <Layout>

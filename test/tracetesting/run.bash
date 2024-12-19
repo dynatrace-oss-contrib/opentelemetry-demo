@@ -7,6 +7,18 @@
 
 set -e
 
+# Availalble services to test
+ALL_SERVICES=("ad" "cart" "currencyservice" "checkoutservice" "frontend" "emailservice" "paymentservice" "productcatalogservice" "recommendationservice" "shippingservice")
+
+## Script variables
+# Will contain the list of services to test
+chosen_services=()
+# Array to hold process IDs
+pids=()
+# Array to hold exit codes
+exit_codes=()
+
+## Script functions
 check_if_tracetest_is_installed() {
   if ! command -v tracetest &> /dev/null
   then
@@ -16,16 +28,16 @@ check_if_tracetest_is_installed() {
 }
 
 create_env_file() {
-  cat << EOF > tracetesting-env.yaml
-type: Environment
+  cat << EOF > tracetesting-vars.yaml
+type: VariableSet
 spec:
-  id: tracetesting-env
-  name: tracetesting-env
+  id: tracetesting-vars
+  name: tracetesting-vars
   values:
-    - key: AD_SERVICE_ADDR
-      value: $AD_SERVICE_ADDR
-    - key: CART_SERVICE_ADDR
-      value: $CART_SERVICE_ADDR
+    - key: AD_ADDR
+      value: $AD_ADDR
+    - key: CART_ADDR
+      value: $CART_ADDR
     - key: CHECKOUT_SERVICE_ADDR
       value: $CHECKOUT_SERVICE_ADDR
     - key: CURRENCY_SERVICE_ADDR
@@ -42,39 +54,57 @@ spec:
       value: $RECOMMENDATION_SERVICE_ADDR
     - key: SHIPPING_SERVICE_ADDR
       value: $SHIPPING_SERVICE_ADDR
+    - key: KAFKA_SERVICE_ADDR
+      value: $KAFKA_SERVICE_ADDR
 EOF
 }
 
 run_tracetest() {
   service_name=$1
-  test_file=./$service_name/all.yaml
+  testsuite_file=./$service_name/all.yaml
 
-  tracetest --config ./cli-config.yml test run --definition $test_file --environment ./tracetesting-env.yaml --wait-for-result
-  return $?
+  tracetest --config ./cli-config.yml run testsuite --file $testsuite_file --vars ./tracetesting-vars.yaml &
+  pids+=($!)
 }
+
+## Script execution
+while [[ $# -gt 0 ]]; do
+  chosen_services+=("$1")
+  shift
+done
+
+if [ ${#chosen_services[@]} -eq 0 ]; then
+  for service in "${ALL_SERVICES[@]}"; do
+    chosen_services+=("$service")
+  done
+fi
 
 check_if_tracetest_is_installed
 create_env_file
 
 echo "Starting tests..."
+echo "Running trace-based tests for: ${chosen_services[*]} ..."
+echo ""
 
-EXIT_STATUS=0
+for service in "${chosen_services[@]}"; do
+  run_tracetest $service
+done
+
+# Wait for processes to finish and capture their exit codes
+for pid in "${pids[@]}"; do
+    wait $pid
+    exit_codes+=($?)
+done
+
+# Find the maximum exit code
+max_exit_code=0
+for code in "${exit_codes[@]}"; do
+    if [[ $code -gt $max_exit_code ]]; then
+        max_exit_code=$code
+    fi
+done
 
 echo ""
-echo "Running trace-based tests..."
+echo "Tests done! Exit code: $max_exit_code"
 
-run_tracetest ad-service || EXIT_STATUS=$?
-run_tracetest cart-service || EXIT_STATUS=$?
-run_tracetest currency-service || EXIT_STATUS=$?
-run_tracetest checkout-service || EXIT_STATUS=$?
-run_tracetest frontend-service || EXIT_STATUS=$?
-run_tracetest email-service || EXIT_STATUS=$?
-run_tracetest payment-service || EXIT_STATUS=$?
-run_tracetest product-catalog-service || EXIT_STATUS=$?
-run_tracetest recommendation-service || EXIT_STATUS=$?
-run_tracetest shipping-service || EXIT_STATUS=$?
-
-echo ""
-echo "Tests done! Exit code: $EXIT_STATUS"
-
-exit $EXIT_STATUS
+exit $max_exit_code

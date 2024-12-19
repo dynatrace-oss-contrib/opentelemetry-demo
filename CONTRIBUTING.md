@@ -2,15 +2,15 @@
 
 Welcome to OpenTelemetry Demo Webstore repository!
 
-Before you start - see OpenTelemetry general
-[contributing](https://github.com/open-telemetry/community/blob/main/CONTRIBUTING.md)
-requirements and recommendations.
+Before you start - see OpenTelemetry
+ [Contributor Guide](https://github.com/open-telemetry/community/blob/main/guides/contributor/README.md)
+ for details on code attribution.
 
 ## Join a SIG Call
 
-We meet weekly Monday's at 8:15 AM PT. The meeting is subject to change
+We meet every other week on Wednesday's at 8:00 PT. The meeting is subject to change
 depending on contributors' availability. Check the [OpenTelemetry community
-calendar](https://calendar.google.com/calendar/embed?src=google.com_b79e3e90j7bbsa2n2p5an5lf60%40group.calendar.google.com)
+calendar](https://github.com/open-telemetry/community?tab=readme-ov-file#special-interest-groups)
 for specific dates and Zoom meeting links.
 
 Meeting notes are available as a public [Google
@@ -73,18 +73,17 @@ cd opentelemetry-demo/
 - Navigate to the Java Ad Service folder to install and update Gradle:
 
 ```shell
-cd .\src\adservice\
+cd .\src\ad\
 .\gradlew installDist
 .\gradlew wrapper --gradle-version 7.4.2
 ```
 
 ### Run Docker Compose
 
-- Start the demo (It can take ~20min the first time the command is executed as
-all the images will be build):
+- Start the demo:
 
 ```shell
-docker compose up -d
+make start
 ```
 
 ### Verify the Webstore & the Telemetry
@@ -113,7 +112,7 @@ GitHub pull requests (PRs).
 
 To create a new PR, fork the project in GitHub and clone the upstream repo:
 
-> **Note**
+> [!NOTE]
 > Please fork to a personal GitHub account rather than a corporate/enterprise
 > one so maintainers can push commits to your branch.
 > **Pull requests from protected forks will not be accepted.**
@@ -167,9 +166,9 @@ Open a pull request against the main `opentelemetry-demo` repo.
 A PR is considered to be **ready to merge** when:
 
 - It has received approval from
-  [Approvers](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver)
+  [Approvers](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver)
   /
-  [Maintainers](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).
+  [Maintainers](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
 - Major feedbacks are resolved.
 - It has been open for review for at least one working day. This gives people
   reasonable time to review.
@@ -197,16 +196,64 @@ on each other), the owner should try to get people aligned by:
   the owner should bring it to the OpenTelemetry Community Demo SIG
   [meeting](README.md#contributing).
 
+## Multi-platform Builds
+
+Creating multi-platform builds requires docker buildx to be installed. This
+is part of Docker Desktop for macOS, or can be installed using
+`apt install docker-buildx` on Ubuntu.
+
+To build and load the multi-platform images locally you will need to configure
+docker to use `containerd`. This can be done in Docker Desktop settings on MacOS
+or Windows. Please follow
+[these instructions](https://docs.docker.com/engine/storage/containerd/#enable-containerd-image-store-on-docker-engine)
+to configure Docker Engine on Linux/Ubuntu.
+
+You will need a multi-platform capable builder with a limiter set on parallelism
+to avoid errors while building the images. It is recommended to limit the
+parallelism to 4. This can be done by specifying a configuration file when
+creating the builder. The `buildkitd.toml` file in this repository can be used
+as the builder configuration file.
+
+To create a multi-platform builder with a parallelism limit of 4, use the
+following command:
+
+```shell
+make create-multiplatform-builder
+```
+
+A builder will be created and set as the active builder. You can check the
+builder status with `docker buildx inspect`. To build multi-platform images for
+linux/amd64 and linux/arm64, use the following command:
+
+```shell
+make build-multiplatform
+```
+
+To build and push multi-platform images to a registry, ensure to set
+`IMAGE_NAME` to the name of the registry and image repository to use in the
+`.env.override` file and run:
+
+```shell
+make build-multiplatform-and-push
+```
+
 ## Making a new release
 
-Maintainers can create a new release when desired by following a few steps.
+Maintainers can create a new release when desired by following these steps.
 
-- Create a new Pull Request that updates the `IMAGE_VERSION` environment
-  variable in `.env` to the _new_ version number.
-- [Draft a new
+- [Create a new
   release](https://github.com/open-telemetry/opentelemetry-demo/releases/new),
   creating a new tag in the format `x.x.x` based on main. Automatically generate
   release notes. Prepend a summary of the major changes to the release notes.
-- Click 'Publish Release'.
+- After images for the new release are built and published, create a new Pull
+  Request that updates the `IMAGE_VERSION` environment variable in `.env` to the
+  _new_ version number, and update the `CHANGELOG.md` with the new version
+  leaving the `Unreleased` section for the next release.
+- Create a new Pull Request to update the deployment of the demo in the
+  [OpenTelemetry Helm
+  Charts](https://github.com/open-telemetry/opentelemetry-helm-charts) repo.
+- After the Helm chart is released, create a new Pull Request which updates the
+  Demo's Kubernetes manifest by running `make generate-kubernetes-manifests` and
+  committing the changes.
 
 [docs]: https://opentelemetry.io/docs/demo/
