@@ -1,35 +1,45 @@
-# Contributing
+# Contributing to OpenTelemetry Demo Webstore
 
-Welcome to OpenTelemetry Demo Webstore repository!
+Welcome to the OpenTelemetry Demo repository! We appreciate your interest in
+contributing. Whether you're fixing a bug, improving documentation, or adding a
+new feature, we value your contribution.
 
-Before you start - see OpenTelemetry
- [Contributor Guide](https://github.com/open-telemetry/community/blob/main/guides/contributor/README.md)
- for details on code attribution.
+Before getting started, please review the
+[OpenTelemetry Contributor Guide](https://github.com/open-telemetry/community/blob/main/guides/contributor/README.md)
+for details on code attribution and best practices.
 
-## Join a SIG Call
+## Getting Started
 
-We meet every other week on Wednesday's at 8:00 PT. The meeting is subject to change
-depending on contributors' availability. Check the [OpenTelemetry community
-calendar](https://github.com/open-telemetry/community?tab=readme-ov-file#special-interest-groups)
-for specific dates and Zoom meeting links.
+### Join a SIG Call
 
-Meeting notes are available as a public [Google
-doc](https://docs.google.com/document/d/16f-JOjKzLgWxULRxY8TmpM_FjlI1sthvKurnqFz9x98/edit).
-For edit access, get in touch on
-[Slack](https://cloud-native.slack.com/archives/C03B4CWV4DA).
+We meet every other Wednesday at 8:00 PT. The schedule may change based on
+contributors' availability. Check the [OpenTelemetry Community Calendar](https://github.com/open-telemetry/community?tab=readme-ov-file#special-interest-groups)
+for specific dates and Zoom links.
 
-## Sign the CLA
+The call is open to all. Whether you're a seasoned OpenTelemetry developer,
+just starting your journey, or simply curious about the work we do, you're more
+than welcome to participate.
 
-Before you can contribute, you will need to sign the [Contributor License
-Agreement](https://identity.linuxfoundation.org/projects/cncf).
+See the
+[public meeting notes](https://docs.google.com/document/d/16f-JOjKzLgWxULRxY8TmpM_FjlI1sthvKurnqFz9x98/edit)
+for a summary description of past meetings.
+For edit access, ask in our
+[Slack channel](https://cloud-native.slack.com/archives/C03B4CWV4DA).
+If you are new to the CNCF Slack community, you can [create an
+account](https://slack.cncf.io/).
 
-## Find a Buddy and Get Started Quickly
+### Sign the Contributor License Agreement (CLA)
 
-If you are looking for someone to help you find a starting point and be a
-resource for your first contribution, join our Slack channel and find a buddy!
+Before contributing, sign the [CLA](https://identity.linuxfoundation.org/projects/cncf)
 
-1. Create your [CNCF Slack account](http://slack.cncf.io/) and join the
-   [otel-community-demo](https://app.slack.com/client/T08PSQ7BQ/C03B4CWV4DA) channel.
+### Find a Mentor (Buddy System)
+
+New to OpenTelemetry? We encourage you to find a mentor who can guide you
+through your first contribution.
+
+1. Create your [CNCF Slack account](https://slack.cncf.io/) and join the
+   [otel-community-demo](https://app.slack.com/client/T08PSQ7BQ/C03B4CWV4DA)
+   channel.
 2. Post in the room with an introduction to yourself, what area you are
    interested in (check issues marked with [help
    wanted](https://github.com/open-telemetry/opentelemetry-demo/labels/help%20wanted)),
@@ -41,60 +51,169 @@ contributing to OpenTelemetry: providing context, reviewing PRs, and helping
 those get merged. Buddies will not be available 24/7, but is committed to
 responding during their normal contribution hours.
 
-## Development Environment
+## Setting Up Your Development Environment
 
-You can contribute to this project from a Windows, macOS or Linux machine. The
-first step to contributing is ensuring you can run the demo successfully from
-your local machine.
+### Prerequisites
 
-On all platforms, the minimum requirements are:
+Ensure you have the following installed:
 
-- Docker
-- [Docker Compose](https://docs.docker.com/compose/install/#install-compose) v2.0.0+
+- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+- [Make](https://www.gnu.org/software/make/)
+- [Docker][docker] with [Docker Compose][docker-compose] v2.0.0+
 
-### Clone Repo
+Alternatively, [Podman][podman] 4.7.0+ can be used instead of Docker. See
+[Using Podman Instead of Docker](#using-podman-instead-of-docker) for setup
+instructions.
 
-- Clone the Webstore Demo repository:
+[docker]: https://www.docker.com/get-started/
+[docker-compose]: https://docs.docker.com/compose/install/#install-compose
+[podman]: https://podman.io/getting-started/installation
 
-```shell
+### Clone the Repository
+
+```sh
 git clone https://github.com/open-telemetry/opentelemetry-demo.git
-```
-
-### Open Folder
-
-- Navigate to the cloned folder:
-
-```shell
 cd opentelemetry-demo/
 ```
 
-### Gradle Update [Windows Only]
+### Run the Demo
 
-- Navigate to the Java Ad Service folder to install and update Gradle:
-
-```shell
-cd .\src\ad\
-.\gradlew installDist
-.\gradlew wrapper --gradle-version 7.4.2
-```
-
-### Run Docker Compose
-
-- Start the demo:
-
-```shell
+```sh
 make start
 ```
 
-### Verify the Webstore & the Telemetry
+### Using Podman Instead of Docker
 
-Once the images are built and containers are started you can access:
+The demo supports both Docker and Podman. Docker is the default container
+runtime. To use Podman instead, set the following environment variables:
 
-- Webstore: <http://localhost:8080/>
-- Jaeger: <http://localhost:8080/jaeger/ui/>
-- Grafana: <http://localhost:8080/grafana/>
-- Feature Flags UI: <http://localhost:8080/feature/>
-- Load Generator UI: <http://localhost:8080/loadgen//>
+```sh
+DOCKER_COMPOSE_CMD="podman compose" make start
+```
+
+To persist this setting, add it to your shell profile (e.g., `~/.bashrc`):
+
+```sh
+export DOCKER_CMD=podman
+export DOCKER_COMPOSE_CMD="podman compose"
+```
+
+Then you can simply run `make start` and it will use Podman.
+
+#### Podman-specific Notes
+
+- Podman runs rootless by default, which may require adjusting some
+  system settings
+- If you encounter permission issues, ensure your user is in the
+  appropriate groups
+- Ensure the Podman socket is running: `systemctl --user start podman.socket`
+- You can check the Podman socket status with: `systemctl --user status podman.socket`
+
+### Verify the Webstore & Telemetry
+
+Once the images are built and containers are started, visit:
+
+- **Webstore**: [http://localhost:8080/](http://localhost:8080/)
+- **Jaeger**: [http://localhost:8080/jaeger/ui/](http://localhost:8080/jaeger/ui/)
+- **Grafana**: [http://localhost:8080/grafana/](http://localhost:8080/grafana/)
+- **OpAMP**: [http://localhost:8080/opamp/](http://localhost:8080/opamp/)
+- **Feature Flags UI**: [http://localhost:8080/feature/](http://localhost:8080/feature/)
+
+The OpAMP UI shows the OpenTelemetry Collector as a managed agent. Click the
+collector instance ID to view its health status, version, attributes, and
+effective configuration.
+
+## Troubleshooting Common Issues
+
+### Docker Not Running
+
+**Error:** `Error response from daemon: Docker daemon is not running.`
+
+**Solution:**
+
+- **Windows/macOS**: Open Docker Desktop and ensure it's running.
+- **Linux**: Check Docker status:
+
+```sh
+systemctl status docker
+```
+
+If inactive, start it:
+
+```sh
+sudo systemctl start docker
+```
+
+### Podman Not Running or Socket Issues
+
+**Error:** `Cannot connect to Podman` or socket-related errors
+
+**Solution:**
+
+- Ensure the Podman socket is running:
+
+```sh
+systemctl --user start podman.socket
+```
+
+- Verify the socket is active:
+
+```sh
+systemctl --user status podman.socket
+```
+
+- Verify the socket exists:
+
+```sh
+podman info --format '{{.Host.RemoteSocket.Path}}'
+```
+
+- If using rootless Podman, ensure `XDG_RUNTIME_DIR` is set correctly.
+
+### Gradle Issues (Windows)
+
+If you encounter Gradle issues, run:
+
+```sh
+cd src/ad/
+./gradlew installDist
+./gradlew wrapper --gradle-version 7.4.2
+```
+
+### Build Cache Issues
+
+While developing, you may encounter issues with container build cache.
+To clear the cache:
+
+```sh
+docker system prune -a   # For Docker
+podman system prune -a   # For Podman
+```
+
+Warning: This removes all unused container data, including images, containers,
+volumes, and networks. Use with caution.
+
+### Debugging Tips
+
+- Check running containers:
+
+```sh
+docker ps       # For Docker
+podman ps       # For Podman
+```
+
+- View logs for services:
+
+```sh
+docker logs <container_id>   # For Docker
+podman logs <container_id>   # For Podman
+```
+
+- Restart containers if needed:
+
+```sh
+make restart service=<service-name>
+```
 
 ### Review the Documentation
 
@@ -102,6 +221,11 @@ The Demo team is committed to keeping the demo up to date. That means the
 documentation as well as the code. When making changes to any service or feature
 remember to find the related docs and update those as well. Most (but not all)
 documentation can be found on the OTel website under [Demo docs][docs].
+
+### Running the React Native example
+
+If you are interested in running the React Native example app in this repo
+please review [these instructions](src/react-native-app/README.md).
 
 ## Create Your First Pull Request
 
@@ -138,13 +262,45 @@ Check out a new branch, make modifications and push the branch to your fork:
 ```sh
 $ git checkout -b feature
 # change files
-# Test your changes locally.
-$ docker compose up -d --build
-# Go to Webstore, Jaeger or docker container logs etc. as appropriate to make sure your changes are working correctly.
 $ git add my/changed/files
 $ git commit -m "short description of the change"
 $ git push fork feature
 ```
+
+Test your changes locally before opening a PR. For a change that affects one
+service, rebuild and restart only that service:
+
+```sh
+make build service=<service-name>
+make restart service=<service-name>
+```
+
+For example, if you change the Shipping service:
+
+```sh
+make build service=shipping
+make restart service=shipping
+```
+
+If the demo is not already running, or your change affects shared Docker Compose
+configuration, environment variables, generated protobufs, cross-service
+contracts, or collector/frontend-proxy configuration, start the demo stack after
+building the affected service:
+
+```sh
+make build service=<service-name>
+make start
+```
+
+Verify the change using the path that matches what you changed: the Webstore UI,
+direct service endpoints, container logs, Jaeger traces, Grafana dashboards, or
+other telemetry views as appropriate.
+
+Update the relevant [documentation][docs] and [Changelog](./CHANGELOG.md) before
+opening the PR for user-visible behavior, telemetry, configuration, or workflow
+changes.
+Trivial typo, cosmetic, and purely internal cleanup changes may not need a
+changelog entry.
 
 Open a pull request against the main `opentelemetry-demo` repo.
 
@@ -158,8 +314,8 @@ Open a pull request against the main `opentelemetry-demo` repo.
 - Make sure the PR title reflects the contribution.
 - Write a summary that helps understand the change.
 - Include usage examples in the summary, where applicable.
-- Include benchmarks (before/after) in the summary, for contributions that are
-  performance enhancements.
+- For performance-related changes, include before/after measurements in the
+  summary and describe how they were collected.
 
 ### How to Get PRs Merged
 
@@ -189,7 +345,9 @@ on each other), the owner should try to get people aligned by:
 - Tagging subdomain experts (by looking at the change history) in the PR asking
   for suggestion.
 - Reaching out to more people on the [CNCF OpenTelemetry Community Demo Slack
-  channel](https://app.slack.com/client/T08PSQ7BQ/C03B4CWV4DA).
+  channel](https://app.slack.com/client/T08PSQ7BQ/C03B4CWV4DA). If you are new
+  to the CNCF Slack community, you can [create an
+  account](https://slack.cncf.io/).
 - Stepping back to see if it makes sense to narrow down the scope of the PR or
   split it up.
 - If none of the above worked and the PR has been stuck for more than 2 weeks,
@@ -241,19 +399,26 @@ make build-multiplatform-and-push
 
 Maintainers can create a new release when desired by following these steps.
 
-- [Create a new
-  release](https://github.com/open-telemetry/opentelemetry-demo/releases/new),
-  creating a new tag in the format `x.x.x` based on main. Automatically generate
-  release notes. Prepend a summary of the major changes to the release notes.
-- After images for the new release are built and published, create a new Pull
-  Request that updates the `IMAGE_VERSION` environment variable in `.env` to the
-  _new_ version number, and update the `CHANGELOG.md` with the new version
-  leaving the `Unreleased` section for the next release.
-- Create a new Pull Request to update the deployment of the demo in the
-  [OpenTelemetry Helm
-  Charts](https://github.com/open-telemetry/opentelemetry-helm-charts) repo.
-- After the Helm chart is released, create a new Pull Request which updates the
-  Demo's Kubernetes manifest by running `make generate-kubernetes-manifests` and
-  committing the changes.
+1. Create a Pull Request that updates the `IMAGE_VERSION` environment variable
+   in `.env` to the _new_ version number based on the format `x.x.x` and merge
+   it.
+2. [Create a new
+   release](https://github.com/open-telemetry/opentelemetry-demo/releases/new),
+   creating a new tag for the _new_ version number based on main. Automatically
+   generate release notes. Prepend a summary of the major changes to the release
+   notes.
+3. After images for the new release are built and published, create a new Pull
+   Request that updates the `CHANGELOG.md` with the new version leaving the
+   `Unreleased` section for the next release. Merge the Pull Request.
+4. Create a new Pull Request to update the deployment of the demo in the
+   [OpenTelemetry Helm
+   Charts](https://github.com/open-telemetry/opentelemetry-helm-charts) repo.
+   Merge the Pull Request.
+5. After the Helm chart is released, create a new Pull Request which updates the
+   Demo's Kubernetes manifest by running `make generate-kubernetes-manifests`.
+   Merge the Pull Request.
 
 [docs]: https://opentelemetry.io/docs/demo/
+
+By following this guide, you'll have a smoother onboarding experience as a
+contributor. Happy coding!

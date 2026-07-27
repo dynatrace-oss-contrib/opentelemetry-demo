@@ -27,17 +27,19 @@ public class ValkeyCartStore : ICartStore
 
     private static readonly ActivitySource CartActivitySource = new("OpenTelemetry.Demo.Cart");
     private static readonly Meter CartMeter = new Meter("OpenTelemetry.Demo.Cart");
-    private static readonly Histogram<long> addItemHistogram = CartMeter.CreateHistogram<long>(
-        "app.cart.add_item.latency",
-        advice: new InstrumentAdvice<long>
+    private static readonly Histogram<double> addItemHistogram = CartMeter.CreateHistogram(
+        "demo.cart.add_item.latency",
+        unit: "s",
+        advice: new InstrumentAdvice<double>
         {
-            HistogramBucketBoundaries = [ 500000, 600000, 700000, 800000, 900000, 1000000, 1100000 ]
+            HistogramBucketBoundaries = [ 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10 ]
         });
-    private static readonly Histogram<long> getCartHistogram = CartMeter.CreateHistogram<long>(
-        "app.cart.get_cart.latency",
-        advice: new InstrumentAdvice<long>
+    private static readonly Histogram<double> getCartHistogram = CartMeter.CreateHistogram(
+        "demo.cart.get_cart.latency",
+        unit: "s",
+        advice: new InstrumentAdvice<double>
         {
-            HistogramBucketBoundaries = [ 300000, 400000, 500000, 600000, 700000, 800000, 900000 ]
+            HistogramBucketBoundaries = [ 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10 ]
         });
     private readonly ConfigurationOptions _redisConnectionOptions;
 
@@ -84,34 +86,36 @@ public class ValkeyCartStore : ICartStore
                 return;
             }
 
-            _logger.LogDebug("Connecting to Redis: {_connectionString}", _connectionString);
+            Log.RedisConnecting(_logger, _connectionString);
+
             _redis = ConnectionMultiplexer.Connect(_redisConnectionOptions);
 
             if (_redis == null || !_redis.IsConnected)
             {
-                _logger.LogError("Wasn't able to connect to redis");
+                Log.RedisConnectionFailed(_logger);
 
                 // We weren't able to connect to Redis despite some retries with exponential backoff.
                 throw new ApplicationException("Wasn't able to connect to redis");
             }
 
-            _logger.LogInformation("Successfully connected to Redis");
+            Log.RedisConnected(_logger);
             var cache = _redis.GetDatabase();
 
-            _logger.LogDebug("Performing small test");
+            Log.RedisSmallTest(_logger);
             cache.StringSet("cart", "OK" );
-            object res = cache.StringGet("cart");
-            _logger.LogDebug("Small test result: {res}", res);
+            string res = (string)cache.StringGet("cart");
 
-            _redis.InternalError += (_, e) => { Console.WriteLine(e.Exception); };
+            Log.RedisSmallTestResult(_logger, res);
+
+            _redis.InternalError += (_, e) => { Log.RedisInternalError(_logger, e.Exception); };
             _redis.ConnectionRestored += (_, _) =>
             {
                 _isRedisConnectionOpened = true;
-                _logger.LogInformation("Connection to redis was restored successfully.");
+                Log.RedisConnectionRestored(_logger);
             };
             _redis.ConnectionFailed += (_, _) =>
             {
-                _logger.LogInformation("Connection failed. Disposing the object");
+                Log.RedisConnectionLost(_logger);
                 _isRedisConnectionOpened = false;
             };
 
@@ -122,7 +126,8 @@ public class ValkeyCartStore : ICartStore
     public async Task AddItemAsync(string userId, string productId, int quantity)
     {
         var stopwatch = Stopwatch.StartNew();
-        _logger.LogInformation("AddItemAsync called with userId={userId}, productId={productId}, quantity={quantity}", userId, productId, quantity);
+
+        Log.AddItemAsync(_logger, userId, productId, quantity);
 
         try
         {
@@ -165,14 +170,13 @@ public class ValkeyCartStore : ICartStore
         }
         finally
         {
-            addItemHistogram.Record(stopwatch.ElapsedTicks);
+            addItemHistogram.Record(stopwatch.Elapsed.TotalSeconds);
         }
     }
 
     public async Task EmptyCartAsync(string userId)
     {
-        _logger.LogInformation("EmptyCartAsync called with userId={userId}", userId);
-
+        Log.EmptyCartAsync(_logger, userId);
         try
         {
             EnsureRedisConnected();
@@ -191,7 +195,8 @@ public class ValkeyCartStore : ICartStore
     public async Task<Oteldemo.Cart> GetCartAsync(string userId)
     {
         var stopwatch = Stopwatch.StartNew();
-        _logger.LogInformation("GetCartAsync called with userId={userId}", userId);
+
+        Log.GetCartAsync(_logger, userId);
 
         try
         {
@@ -216,7 +221,7 @@ public class ValkeyCartStore : ICartStore
         }
         finally
         {
-            getCartHistogram.Record(stopwatch.ElapsedTicks);
+            getCartHistogram.Record(stopwatch.Elapsed.TotalSeconds);
         }
     }
 
